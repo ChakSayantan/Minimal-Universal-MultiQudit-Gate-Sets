@@ -184,7 +184,8 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
     "QKD Simulation Logs": "QKD_Measurements/QKD Simulation Outcomes.txt",
     "QKD Basis Choice Plot": "QKD_Measurements/QKD Basis Choice Distribution.png"
   }
-}```
+}
+```
 
 ## 8. Cryptographic Relevance
 
@@ -223,4 +224,4 @@ Histograms, distribution plots and simulation logs will be deposited in `Grover_
 
 ## ✅ Conclusion
 This repository validates the practicality of the minimal universal gate set (`PHASE1 ∪ T_elements`) by demonstrating end-to-end cryptographic protocols in a reproducible Python framework.  
-Both **Grover** and **QKD** confirm **functional equivalence** between traditional and decomposed implementations, ensuring security and scalability in cryptographic contexts.
+Both **Grover's Algorithm** and **QKD Simulation** confirm **functional equivalence** between traditional and decomposed implementations, ensuring security and scalability in cryptographic contexts.
