@@ -1,5 +1,5 @@
 # Minimal-Universal-MultiQudit-Gate-Sets
-Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation
+The code repository alligns with the research paper titled "Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation".
 
 ## 1. Introduction
 
@@ -83,10 +83,10 @@ for M in R_matrices[::-1]:
 ### Results
 
 - **Traditional Histogram**  
-  ![Grover Traditional](./Grovers%20Circuit%20with%20Traditional%20Gates.png)  
+  ![Grover Traditional](./Grover_Measurements/Grovers%20Circuit%20with%20Traditional%20Gates.png)  
 
 - **Universal Histogram**  
-  ![Grover Universal](./Grovers%20Circuit%20with%20Universal%20Gates.png)  
+  ![Grover Universal](./Grover_Measurements/Grovers%20Circuit%20with%20Universal%20Gates.png)  
 
 **Interpretation:** Both amplify the same marked state, confirming equivalence.  
 The universal version has greater depth but functional correctness is preserved.  
@@ -94,30 +94,61 @@ The universal version has greater depth but functional correctness is preserved.
 ## 5. Quantum Key Distribution (QKD) Validation
 
 - Alice chooses random trit (0/1/2) and basis (rectilinear/diagonal).  
-- Bob chooses random basis.  
+- Bob chooses random basis (rectilinear/diagonal).  
 - Keys established when bases align.  
 
 ### Basis Choice Distribution  
 
-![QKD Basis](./QKD%20Basis%20Choice%20Distribution.png)  
+![QKD Basis](./QKD_Measurements/QKD%20Basis%20Choice%20Distribution.png)  
 
 ### Example Logs  
 
 ```
---- QKD Round 12/100 ---
-Alice: Preparing bit 1 in basis 'rectilinear'.
-Bob: Choosing basis 'rectilinear'.
-Bob: Measured bit 1 in basis 'rectilinear'.
+--- QKD Round 29/100 ---
+Alice: Preparing bit 2 in basis 'diagonal'.
+Bob: Choosing basis 'diagonal'.
+0(d=3): --- Qutrit_0swap2_Gate --- Qu3H --- Qu3H --- M('diagonal_measurement')
+0(d=3): --- Qu3M x3 --- Qu3M x5 --- Qu3M x5 --- M('diagonal_measurement')
+Bob: Measured bit 2 in basis 'diagonal'.
+Bob: Measured bit 2 in basis 'diagonal'.
 Alice and Bob used the same basis.
-  Key established for this round: 1
+Key established for this round: 2
 ```
 
+In Round 29 of the QKD simulation, within the traditional setup, Alice randomly selected
+the trit “2” and the diagonal basis, while Bob independently chose the same diagonal
+basis. On Alice’s side, this resulted in a circuit beginning with the 0swap2 gate
+to encode the symbol, followed by a Hadamard gate to realize the diagonal basis. Bob,
+matching the basis choice, appended a Hadamard gate before measurement. In case of
+universal decomposed gates, all the gates are decomposed into unitary matrices of the
+proposed forms and then appended subsequently replacing the traditional gates. The
+0swap2 gate has been replaced with one Ri j, one Φbalance and one Φ matrices, while
+the Hadamard gate has been replaced with three Ri j, one Φbalance and one Φ matrices.
+Both measurements yielded the value “2”, and since the bases aligned, a key bit was
+successfully established, exactly as predicted by the principles of QKD.
+
+
 ```
---- QKD Round 47/100 ---
-Alice: Preparing bit 0 in basis 'diagonal'.
-Bob: Choosing basis 'rectilinear'.
-Alice and Bob used different bases. No key bit established.
+--- QKD Round 67/100 ---
+Alice: Preparing bit 0 in basis 'rectilinear'.
+Bob: Choosing basis 'diagonal'.
+20 Anonymous Submission
+0(d=3): --- Qu3H --- M('rectilinear_measurement')
+0(d=3): --- Qu3M --- Qu3M --- Qu3M --- Qu3M --- Qu3M --- M('diagonal_measurement')
+Bob: Measured bit 1 in basis 'diagonal'.
+Bob: Measured bit 2 in basis 'diagonal'.
+Alice and Bob used different bases or measurement result invalid.
+No key bit established for this round.
 ```
+
+In Round 67 of the QKD simulation, within the traditional setup, Alice randomly selected
+the trit “0” and the rectilinear basis, while Bob independently chose the diagonal
+basis. Because of Alice’s choices, this resulted in a circuit that keeps the state unaltered.
+Bob, matching the basis choice, appended a Hadamard gate before measurement.
+In case of universal decomposed gates, the only Hadamard gate in the circuit has been
+replaced with three Ri j, one Φbalance and one Φ matrices. We see both measurements
+yielded different values of measured bit, although the choice of bases being different,
+this round will anyway not yield any shared key bit.
 
 ### Summary  
 
@@ -136,7 +167,7 @@ Alice and Bob used different bases. No key bit established.
 
 ## 7. Results & Outputs
 
-### Grover JSON Output  
+### Sample Grover JSON Output  
 
 ```json
 {
@@ -151,7 +182,7 @@ Alice and Bob used different bases. No key bit established.
 }
 ```
 
-### QKD JSON Output  
+### Sample QKD JSON Output  
 
 ```json
 {
