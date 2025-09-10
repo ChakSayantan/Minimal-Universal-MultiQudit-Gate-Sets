@@ -115,17 +115,9 @@ Alice and Bob used the same basis.
 Key established for this round: 2
 ```
 
-In Round 29 of the QKD simulation, within the traditional setup, Alice randomly selected
-the trit “2” and the diagonal basis, while Bob independently chose the same diagonal
-basis. On Alice’s side, this resulted in a circuit beginning with the 0swap2 gate
-to encode the symbol, followed by a Hadamard gate to realize the diagonal basis. Bob,
-matching the basis choice, appended a Hadamard gate before measurement. In case of
-universal decomposed gates, all the gates are decomposed into unitary matrices of the
-proposed forms and then appended subsequently replacing the traditional gates. The
-0swap2 gate has been replaced with one Ri j, one Φbalance and one Φ matrices, while
-the Hadamard gate has been replaced with three Ri j, one Φbalance and one Φ matrices.
-Both measurements yielded the value “2”, and since the bases aligned, a key bit was
-successfully established, exactly as predicted by the principles of QKD.
+In Round 29 of the QKD simulation, within the traditional setup, Alice randomly selected the trit “2” and the diagonal basis, while Bob independently chose the same diagonal basis. On Alice’s side, this resulted in a circuit beginning with the 0swap2 gate to encode the symbol, followed by a Hadamard gate to realize the diagonal basis. Bob, matching the basis choice, appended a Hadamard gate before measurement. 
+In case of universal decomposed gates, all the gates are decomposed into unitary matrices of the proposed forms and then appended subsequently replacing the traditional gates. The 0swap2 gate has been replaced with one R_ij, one Phi balance and one Phi matrices, while the Hadamard gate has been replaced with three R_ij, one Phi balance and one Phi matrices.
+Both measurements yielded the value “2”, and since the bases aligned, a key bit was successfully established, exactly as predicted by the principles of QKD.
 
 
 ```
@@ -141,20 +133,14 @@ Alice and Bob used different bases or measurement result invalid.
 No key bit established for this round.
 ```
 
-In Round 67 of the QKD simulation, within the traditional setup, Alice randomly selected
-the trit “0” and the rectilinear basis, while Bob independently chose the diagonal
-basis. Because of Alice’s choices, this resulted in a circuit that keeps the state unaltered.
-Bob, matching the basis choice, appended a Hadamard gate before measurement.
-In case of universal decomposed gates, the only Hadamard gate in the circuit has been
-replaced with three Ri j, one Φbalance and one Φ matrices. We see both measurements
-yielded different values of measured bit, although the choice of bases being different,
-this round will anyway not yield any shared key bit.
+In Round 67 of the QKD simulation, within the traditional setup, Alice randomly selected the trit “0” and the rectilinear basis, while Bob independently chose the diagonal basis. Because of Alice’s choices, this resulted in a circuit that keeps the state unaltered. Bob, matching the basis choice, appended a Hadamard gate before measurement. 
+In case of universal decomposed gates, the only Hadamard gate in the circuit has been replaced with three R_ij, one Phi balance and one Phi matrices. We see both measurements yielded different values of measured bit, although the choice of bases being different, this round will anyway not yield any shared key bit.
 
 ### Summary  
 
 - 100 rounds simulated.  
-- ~52 shared key bits established.  
-- Both traditional and universal gates produced identical outcomes.  
+- Around 50 shared key bits established.  
+- Both traditional and universal gates produced identical outcomes whenever choices of bases matches.  
 
 ## 6. Implementation Details
 
@@ -171,13 +157,16 @@ this round will anyway not yield any shared key bit.
 
 ```json
 {
+  "status": 200,
   "Grovers Circuit with Traditional Gates": {
-    "measurement_outcomes": "State 10 amplified",
-    "states_with_most_probability": "10 - 2741, 11 - 1121, 00 - 1023"
+    "measurement_outcomes": "Grover's algorithm has amplified the probability of the state 03",
+    "states_with_most_probability": "03 - 2404. 10 - 204. 12 - 188. 21 - 185. 33 - 184",
+    "histogram_location": "Grover_Measurements/Grovers Circuit with Traditional Gates.png"
   },
   "Grovers Circuit with Universal Gates": {
-    "measurement_outcomes": "State 10 amplified",
-    "states_with_most_probability": "10 - 2698, 11 - 1102, 00 - 1031"
+    "measurement_outcomes": "Grover's algorithm has amplified the probability of the state 03",
+    "states_with_most_probability": "03 - 2400. 30 - 200. 00 - 200. 23 - 190. 20 - 187",
+    "histogram_location": "Grover_Measurements/Grovers Circuit with Universal Gates.png"
   }
 }
 ```
@@ -186,14 +175,16 @@ this round will anyway not yield any shared key bit.
 
 ```json
 {
+  "status": 200,
   "QKD Simulation Response": {
     "Total Rounds Simulated": 100,
-    "Number of Key Bits Established": 52,
-    "Shared Secret Key": "101001101...",
-    "Impression": "Bases matched 52 times; both universal and traditional circuits aligned in 52 cases."
+    "Number of Key Bits Established": 56,
+    "Shared Secret Key": "12201220120122220110210202122200201211121012212020010001",
+    "Impression": "The choosen bases of Alice and Bob has matched 56 times and 56 many times the circuits with traditional and universal gates has yielded same measurement.",
+    "QKD Simulation Logs": "QKD_Measurements/QKD Simulation Outcomes.txt",
+    "QKD Basis Choice Plot": "QKD_Measurements/QKD Basis Choice Distribution.png"
   }
-}
-```
+}```
 
 ## 8. Cryptographic Relevance
 
@@ -204,6 +195,9 @@ this round will anyway not yield any shared key bit.
 ## 9. How to Run
 
 ### Requirements  
+
+All necessary python libraries with matching version are provided in requirements file. 
+Majorly required python libraries are following. 
 
 - Python 3.9+  
 - Cirq  
@@ -222,7 +216,8 @@ pip install -r requirements.txt
 python __init__.py
 ```
 
-Outputs will be in `Grover_Measurements/` and `QKD_Measurements/`.  
+Outputs will be displayed in terminal itself.
+Histograms, distribution plots and simulation logs will be deposited in `Grover_Measurements/` and `QKD_Measurements/` folders.  
 
 ---
 
