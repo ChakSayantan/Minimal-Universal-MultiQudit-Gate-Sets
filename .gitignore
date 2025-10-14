@@ -1,11 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-notebook_grover_universal.ipynb
-notebook_qkd_universal.ipynb
-
 # Environments
 .venv
 
