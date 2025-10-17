@@ -1,5 +1,5 @@
 
-from qkd_utils import *
+from utils.utils_qkd import *
 
 # --- Decomposing Qutrit Gates with Universal Gate Set (Setting Global Variables) ---
 

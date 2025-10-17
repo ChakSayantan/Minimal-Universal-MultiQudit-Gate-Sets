@@ -1,5 +1,5 @@
 
-from grover_utils import *
+from utils.utils_grover import *
 
 def grover_circuit_with_traditional_gates(q0, q1):
 
