@@ -1,12 +1,9 @@
 
 # Import Libraries
-import os
 import cirq
 import cmath
-import random
 import numpy as np
-from collections import Counter
-import matplotlib.pyplot as plt
+from utils.tools import *
 
 # ... qutrit based state generation operators ...
 class Qutrit_0swap2_Gate(cirq.Gate):
@@ -102,142 +99,102 @@ class QuditHGate(cirq.Gate):
         """Provides information for circuit diagrams."""
         return f'Qu{self._d}H'
     
-# --- To define arbitrary operator from arbitrary matrix ---
-class ArbitraryGate(cirq.Gate):
-    """A generic gate that applies a given arbitrary unitary matrix.
+# # --- Universal Decomposition ---
 
-    This is useful for applying decomposed gates (e.g., from Reck's algorithm).
+# # Reck's Decomposition method to decomposes an unitary matrix into a product of R_i matrices and a diagonal phase matrix.
+# def reckon_decompose_unitary(M):
+#     """
+#     Decomposes an N x N unitary matrix M into a product of R_k matrices and a diagonal
+#     phase matrix Phi, such that M = R_1 @ R_2 @ ... @ R_L @ Phi.
 
-    Args:
-        d (int): The dimension of the qudit system this gate operates on.
-                 Note: For multi-qubit/qudit gates, this parameter might need
-                 adjustment or a different approach to specify the total system.
-                 Here, it's mainly for diagram labeling.
-        matrix (np.ndarray): The N x N unitary matrix to apply.
-    """
-    def __init__(self, d: int, matrix: np.ndarray):
-        super().__init__()
-        if not isinstance(d, int) or d <= 0:
-            raise ValueError("The number of levels 'd' must be a positive integer.")
-        if matrix.shape[0] != matrix.shape[1] or matrix.shape[0] != d:
-             # This check is done to carry out data sanity check on the matrix dimension
-            pass 
+#     This algorithm is based on the Reck's decomposition method, which uses a sequence
+#     of Givens rotations to transform the unitary matrix into a diagonal matrix.
 
-        self._d = d
-        self._matrix = matrix
-        self.name = f'Arb{d}' # Generic name for arbitrary gates
-        self.num_qubits = 1 # QuditHGate acts on 1 qudit, so its decomposition is also on 1 qudit
+#     Args:
+#         M (np.ndarray): An N x N complex numpy array representing a unitary matrix.
 
-    def _qid_shape_(self):
-        """Returns the shape of the qudit this gate acts on."""
-        return (self._d,) # Use the stored instance value of d
+#     Returns:
+#         tuple: A tuple containing:
+#             - R_matrices (list): A list of N x N numpy arrays, where each array is
+#                                  an R_k matrix (identity matrix with a 2x2 unitary
+#                                  block). The matrices are ordered such that
+#                                  M = R_matrices[0] @ R_matrices[1] @ ... @ R_matrices[-1] @ Phi.
+#             - Phi (np.ndarray): An N x N diagonal numpy array representing the
+#                                  final phase shift matrix.
 
-    def _unitary_(self):
-        """Returns the unitary matrix for the gate."""
-        d = self._d  # Retrieve the d value for this specific instance
-        matrix = self._matrix
-        return np.array(matrix)
-
-    def _circuit_diagram_info_(self, args):
-        """Provides information for circuit diagrams."""
-        return f'Qu{self._d}M'
+#     Raises:
+#         ValueError: If the input matrix is not square or is not unitary.
+#     """
+#     N = M.shape[0]
+#     if M.shape[1] != N:
+#         raise ValueError("Input matrix must be square.")
     
-# --- Universal Decomposition ---
+#     # Check if M is unitary (M @ M.conj().T should be identity)
+#     if not np.allclose(M @ M.conj().T, np.eye(N)):
+#         raise ValueError("Input matrix is not unitary.")
 
-# Reck's Decomposition method to decomposes an unitary matrix into a product of R_i matrices and a diagonal phase matrix.
-def reckon_decompose_unitary(M):
-    """
-    Decomposes an N x N unitary matrix M into a product of R_k matrices and a diagonal
-    phase matrix Phi, such that M = R_1 @ R_2 @ ... @ R_L @ Phi.
+#     R_matrices = []
+#     U_current = M.astype(complex) # Ensure complex dtype for computations
 
-    This algorithm is based on the Reck's decomposition method, which uses a sequence
-    of Givens rotations to transform the unitary matrix into a diagonal matrix.
+#     # Iterate through columns from left to right (j)
+#     for j in range(N - 1):
+#         # Iterate through rows from bottom up to j+1 (i)
+#         # to zero out elements below the diagonal in column j
+#         for i in range(N - 1, j, -1):
+#             u = U_current[j, j]
+#             v = U_current[i, j]
 
-    Args:
-        M (np.ndarray): An N x N complex numpy array representing a unitary matrix.
+#             # If the element to zero is already very small, skip
+#             if np.isclose(v, 0.0):
+#                 continue
 
-    Returns:
-        tuple: A tuple containing:
-            - R_matrices (list): A list of N x N numpy arrays, where each array is
-                                 an R_k matrix (identity matrix with a 2x2 unitary
-                                 block). The matrices are ordered such that
-                                 M = R_matrices[0] @ R_matrices[1] @ ... @ R_matrices[-1] @ Phi.
-            - Phi (np.ndarray): An N x N diagonal numpy array representing the
-                                 final phase shift matrix.
+#             r = np.sqrt(np.abs(u)**2 + np.abs(v)**2)
 
-    Raises:
-        ValueError: If the input matrix is not square or is not unitary.
-    """
-    N = M.shape[0]
-    if M.shape[1] != N:
-        raise ValueError("Input matrix must be square.")
-    
-    # Check if M is unitary (M @ M.conj().T should be identity)
-    if not np.allclose(M @ M.conj().T, np.eye(N)):
-        raise ValueError("Input matrix is not unitary.")
-
-    R_matrices = []
-    U_current = M.astype(complex) # Ensure complex dtype for computations
-
-    # Iterate through columns from left to right (j)
-    for j in range(N - 1):
-        # Iterate through rows from bottom up to j+1 (i)
-        # to zero out elements below the diagonal in column j
-        for i in range(N - 1, j, -1):
-            u = U_current[j, j]
-            v = U_current[i, j]
-
-            # If the element to zero is already very small, skip
-            if np.isclose(v, 0.0):
-                continue
-
-            r = np.sqrt(np.abs(u)**2 + np.abs(v)**2)
-
-            # Construct the 2x2 Givens rotation block G_block
-            # G_block @ [[u],[v]] = [[r],[0]]
-            c = u.conjugate() / r
-            s = v.conjugate() / r
+#             # Construct the 2x2 Givens rotation block G_block
+#             # G_block @ [[u],[v]] = [[r],[0]]
+#             c = u.conjugate() / r
+#             s = v.conjugate() / r
             
-            # The 2x2 block that zeros v when applied to [[u],[v]]
-            G_block = np.array([[c, s],
-                                [-s.conjugate(), c.conjugate()]], dtype=complex)
+#             # The 2x2 block that zeros v when applied to [[u],[v]]
+#             G_block = np.array([[c, s],
+#                                 [-s.conjugate(), c.conjugate()]], dtype=complex)
 
-            # Construct the N x N R_inv_matrix (Givens rotation matrix)
-            R_inv_matrix = np.eye(N, dtype=complex)
-            R_inv_matrix[np.ix_([j, i], [j, i])] = G_block
+#             # Construct the N x N R_inv_matrix (Givens rotation matrix)
+#             R_inv_matrix = np.eye(N, dtype=complex)
+#             R_inv_matrix[np.ix_([j, i], [j, i])] = G_block
 
-            # Apply the rotation to U_current
-            U_current = R_inv_matrix @ U_current
+#             # Apply the rotation to U_current
+#             U_current = R_inv_matrix @ U_current
 
-            # Store the R_k matrix (which is the inverse of R_inv_matrix, i.e., its conjugate transpose)
-            R_matrices.append(R_inv_matrix.conj().T)
+#             # Store the R_k matrix (which is the inverse of R_inv_matrix, i.e., its conjugate transpose)
+#             R_matrices.append(R_inv_matrix.conj().T)
 
-    Phi = U_current
+#     Phi = U_current
     
-    # Round small values to zero for cleaner diagonal matrix
-    # and ensure phases are correct
-    for k in range(N):
-        if not np.isclose(np.abs(Phi[k, k]), 1.0):
-             # This should not happen if M is unitary and calculations are precise
-            print(f"Warning: Diagonal element Phi[{k},{k}] has magnitude {np.abs(Phi[k,k])} != 1.")
-        # Make off-diagonal elements exactly zero if close to zero
-        for l in range(N):
-            if k != l and np.isclose(Phi[k, l], 0.0):
-                Phi[k, l] = 0.0
+#     # Round small values to zero for cleaner diagonal matrix
+#     # and ensure phases are correct
+#     for k in range(N):
+#         if not np.isclose(np.abs(Phi[k, k]), 1.0):
+#              # This should not happen if M is unitary and calculations are precise
+#             print(f"Warning: Diagonal element Phi[{k},{k}] has magnitude {np.abs(Phi[k,k])} != 1.")
+#         # Make off-diagonal elements exactly zero if close to zero
+#         for l in range(N):
+#             if k != l and np.isclose(Phi[k, l], 0.0):
+#                 Phi[k, l] = 0.0
 
-    # Decomposition of Phi Matrix into product of elements from T_elements and Phase1
-    # Elements of T_elements are finally appended under R_matrices   
-    Phi_balance = np.eye(N, dtype=complex)
-    if np.linalg.det(Phi) != 1: 
-        v = 1
-        for i in range(len(Phi)): 
-            v = v * Phi[i][i]
-        phi0 = v.conjugate()
-        Phi_balance[0][0] = phi0
-        for i in range(1, len(Phi)): Phi_balance[i][i] = Phi[i][i]
-        Phi = np.eye(N, dtype=complex)
-        Phi[0][0] = v
-        R_matrices.append(Phi_balance)
+#     # Decomposition of Phi Matrix into product of elements from T_elements and Phase1
+#     # Elements of T_elements are finally appended under R_matrices   
+#     Phi_balance = np.eye(N, dtype=complex)
+#     if np.linalg.det(Phi) != 1: 
+#         v = 1
+#         for i in range(len(Phi)): 
+#             v = v * Phi[i][i]
+#         phi0 = v.conjugate()
+#         Phi_balance[0][0] = phi0
+#         for i in range(1, len(Phi)): Phi_balance[i][i] = Phi[i][i]
+#         Phi = np.eye(N, dtype=complex)
+#         Phi[0][0] = v
+#         R_matrices.append(Phi_balance)
 
-    return R_matrices, Phi
+#     return R_matrices, Phi
 

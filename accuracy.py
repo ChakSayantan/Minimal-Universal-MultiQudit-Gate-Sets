@@ -1,328 +1,7 @@
 
-import numpy as np
+import pandas as pd
+from utils.tools import *
 
-def reckon_decompose_unitary(M):
-    """
-    Decomposes an N x N unitary matrix M into a product of R_k matrices and a diagonal
-    phase matrix Phi, such that M = R_1 @ R_2 @ ... @ R_L @ Phi.
-
-    This algorithm is based on the Reck's decomposition method, which uses a sequence
-    of Givens rotations to transform the unitary matrix into a diagonal matrix.
-
-    Args:
-        M (np.ndarray): An N x N complex numpy array representing a unitary matrix.
-
-    Returns:
-        tuple: A tuple containing:
-            - R_matrices (list): A list of N x N numpy arrays, where each array is
-                                 an R_k matrix (identity matrix with a 2x2 unitary
-                                 block). The matrices are ordered such that
-                                 M = R_matrices[0] @ R_matrices[1] @ ... @ R_matrices[-1] @ Phi.
-            - Phi (np.ndarray): An N x N diagonal numpy array representing the
-                                 final phase shift matrix.
-
-    Raises:
-        ValueError: If the input matrix is not square or is not unitary.
-    """
-    N = M.shape[0]
-    if M.shape[1] != N:
-        raise ValueError("Input matrix must be square.")
-    
-    # Check if M is unitary (M @ M.conj().T should be identity)
-    if not np.allclose(M @ M.conj().T, np.eye(N)):
-        raise ValueError("Input matrix is not unitary.")
-
-    R_matrices = []
-    U_current = M.astype(complex) # Ensure complex dtype for computations
-
-    # Iterate through columns from left to right (j)
-    for j in range(N - 1):
-        # Iterate through rows from bottom up to j+1 (i)
-        # to zero out elements below the diagonal in column j
-        for i in range(N - 1, j, -1):
-            u = U_current[j, j]
-            v = U_current[i, j]
-
-            # If the element to zero is already very small, skip
-            if np.isclose(v, 0.0):
-                continue
-
-            r = np.sqrt(np.abs(u)**2 + np.abs(v)**2)
-
-            # Construct the 2x2 Givens rotation block G_block
-            # G_block @ [[u],[v]] = [[r],[0]]
-            c = u.conjugate() / r
-            s = v.conjugate() / r
-            
-            # The 2x2 block that zeros v when applied to [[u],[v]]
-            G_block = np.array([[c, s],
-                                [-s.conjugate(), c.conjugate()]], dtype=complex)
-
-            # Construct the N x N R_inv_matrix (Givens rotation matrix)
-            R_inv_matrix = np.eye(N, dtype=complex)
-            R_inv_matrix[np.ix_([j, i], [j, i])] = G_block
-
-            # Apply the rotation to U_current
-            U_current = R_inv_matrix @ U_current
-
-            # Store the R_k matrix (which is the inverse of R_inv_matrix, i.e., its conjugate transpose)
-            R_matrices.append(R_inv_matrix.conj().T)
-
-    Phi = U_current
-    
-    # Round small values to zero for cleaner diagonal matrix
-    # and ensure phases are correct
-    for k in range(N):
-        if not np.isclose(np.abs(Phi[k, k]), 1.0):
-             # This should not happen if M is unitary and calculations are precise
-            print(f"Warning: Diagonal element Phi[{k},{k}] has magnitude {np.abs(Phi[k,k])} != 1.")
-        # Make off-diagonal elements exactly zero if close to zero
-        for l in range(N):
-            if k != l and np.isclose(Phi[k, l], 0.0):
-                Phi[k, l] = 0.0
-    Phi_balance = np.eye(N, dtype=complex)
-    if np.linalg.det(Phi) != 1: 
-        v = 1
-        for i in range(len(Phi)): 
-            v = v * Phi[i][i]
-        phi0 = v.conjugate()
-        Phi_balance[0][0] = phi0
-        for i in range(1, len(Phi)): Phi_balance[i][i] = Phi[i][i]
-        Phi = np.eye(N, dtype=complex)
-        Phi[0][0] = v
-        R_matrices.append(Phi_balance)
-    
-    return R_matrices, Phi
-
-
-def generate_random_unitary_matrix(n):
-    """
-    Generates an n x n random unitary complex matrix using the QR decomposition
-    of a Ginibre random matrix.
-    """
-    # 1. Create an n x n matrix with standard complex Gaussian entries (Ginibre matrix)
-    # Each real and imaginary part drawn from N(0, 1/2)
-    # np.random.randn generates samples from a standard normal distribution N(0, 1)
-    A = (np.random.randn(n, n) + 1j * np.random.randn(n, n)) / np.sqrt(2.0)
-
-    # 2. Perform QR decomposition
-    Q, R = np.linalg.qr(A)
-
-    # 3. The matrix Q is unitary
-    return Q
-
-
-matrix = generate_random_unitary_matrix(5)
-
-print("Original Matrix :")
-print(matrix)
-
-# Perform the decomposition
-R_matrices, Phi = reckon_decompose_unitary(matrix)
-
-print("\nDecomposition Results:")
-
-if R_matrices:
-    print(f"Number of R matrices: {len(R_matrices)}")
-    for idx, R in enumerate(R_matrices):
-        print(f"\nR_{idx + 1} Matrix:")
-        print(R)
-else:
-    print("No R matrices generated (matrix might already be diagonal or N=1).")
-
-print("\nPhi (Diagonal Phase Matrix):")
-print(np.array(Phi))
-
-reconstructed = Phi
-if R_matrices:
-    # The R_matrices are stored in the order they are multiplied from left
-    # M = R_matrices[0] @ R_matrices[1] @ ... @ R_matrices[-1] @ Phi
-    if len(R_matrices)>1: reconstructed = np.linalg.multi_dot(R_matrices) @ Phi
-    else: reconstructed = R_matrices @ Phi
-
-print("\nReconstructed Matrix:")
-print(reconstructed)
-
-# Verify if the reconstructed matrix matches the original
-is_match = np.allclose(reconstructed, matrix)
-print(f"\nDoes reconstructed matrix match original matrix? {is_match}")
-if not is_match:
-    print("Difference:")
-    print(matrix - reconstructed)
-
-# ---------------------------
-# Core matrix similarity metrics
-# ---------------------------
-
-def operator_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Operator fidelity for (ideally unitary) matrices:
-        F = (1/m) * |Tr(U_target^\dagger U_approx)|
-    Returns a value in [0, 1] when both are unitary.
-    """
-    m = U_target.shape[0]
-    return float(np.abs(np.trace(U_target.conj().T @ U_approx)) / m)
-
-
-def trace_similarity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Normalized trace overlap ('trace similarity'):
-        S = |Tr(U_target^\dagger U_approx)| / sqrt(Tr(U_target^\dagger U_target) * Tr(U_approx^\dagger U_approx))
-    For unitaries, Tr(U^\dagger U) = m, hence S == operator_fidelity.
-    """
-    num = np.abs(np.trace(U_target.conj().T @ U_approx))
-    den = np.sqrt(
-        np.trace(U_target.conj().T @ U_target).real *
-        np.trace(U_approx.conj().T @ U_approx).real
-    )
-    return float(num / den) if den != 0 else 0.0
-
-
-def frobenius_error(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Frobenius norm (Euclidean) error: ||U_target - U_approx||_F.
-    Lower is better; zero means identical matrices.
-    """
-    diff = U_target - U_approx
-    return float(np.linalg.norm(diff, ord='fro'))
-
-
-def spectral_norm_error(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Spectral (operator) norm error: ||U_target - U_approx||_2
-    i.e., largest singular value of the difference.
-    """
-    diff = U_target - U_approx
-    svals = np.linalg.svd(diff, compute_uv=False)
-    return float(svals[0])  # largest singular value
-
-
-def trace_distance(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Trace distance (Schatten-1 norm based):
-        D = (1/2) * ||U_target - U_approx||_1
-    where ||·||_1 is the sum of singular values (trace norm).
-    """
-    diff = U_target - U_approx
-    svals = np.linalg.svd(diff, compute_uv=False)
-    return 0.5 * float(np.sum(svals))
-
-
-def hilbert_schmidt_inner(U_target: np.ndarray, U_approx: np.ndarray, normalized: bool = True) -> complex:
-    """
-    Hilbert–Schmidt inner product:
-        <U_target, U_approx> = Tr(U_target^\dagger U_approx)
-    If normalized=True, returns Tr(U_target^\dagger U_approx)/m,
-    which for unitaries is (complex) and whose magnitude equals operator fidelity.
-    """
-    m = U_target.shape[0]
-    val = np.trace(U_target.conj().T @ U_approx)
-    return val / m if normalized else val
-
-
-def average_gate_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Average gate fidelity (widely used benchmark metric):
-        F_avg = (|Tr(U_target^\dagger U_approx)|^2 + m) / (m * (m + 1))
-    Assumes both are m×m unitaries (or near-unitary).
-    """
-    m = U_target.shape[0]
-    t = np.trace(U_target.conj().T @ U_approx)
-    return float((np.abs(t) ** 2 + m) / (m * (m + 1)))
-
-
-# ---------------------------
-# Unitary-specific diagnostics
-# ---------------------------
-
-def _circular_min_arc_length(phases: np.ndarray) -> float:
-    """
-    Helper: Given an array of angles in [-π, π), compute the length of the
-    minimal arc on the unit circle that covers all angles. (Result in [0, 2π].)
-    """
-    # Sort phases and compute circular gaps
-    ph = np.sort(phases)
-    diffs = np.diff(ph)
-    # include wrap-around gap
-    last_gap = (ph[0] + 2 * np.pi) - ph[-1]
-    gaps = np.concatenate([diffs, [last_gap]])
-    # The complement of the largest gap is the minimal covering arc
-    max_gap = np.max(gaps)
-    return float(2 * np.pi - max_gap)
-
-
-def unitary_eigenphase_spread(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Compute the eigenphase 'spread' for W = U_target^\dagger U_approx.
-    Steps:
-      1) W = U_target^\dagger U_approx (unitary if both are unitary)
-      2) eigenvalues λ_k of W lie on the unit circle; let θ_k = arg(λ_k) in [-π, π)
-      3) return minimal covering arc length Δθ ∈ [0, 2π]
-    Smaller Δθ indicates closer unitary action modulo a global phase.
-    """
-    W = U_target.conj().T @ U_approx
-    evals = np.linalg.eigvals(W)
-    phases = np.angle(evals)  # in [-π, π)
-    return _circular_min_arc_length(phases)
-
-
-def diamond_norm_unitary_estimate(U_target: np.ndarray, U_approx: np.ndarray) -> float:
-    """
-    Practical numerical estimate of the diamond-norm distance between the
-    unitary channels Ad_U and Ad_V (i.e., ρ -> U ρ U^† vs V ρ V^†).
-
-    For unitaries, a convenient proxy is:
-        || Ad_U - Ad_V ||_diamond  ≈  2 * sin(Δθ / 2)
-    where Δθ is the minimal covering arc length of eigenphases of W = U_target^\dagger U_approx
-    (after optimal global phase alignment, which this Δθ effectively encodes).
-
-    NOTE: This is an estimate commonly used in practice; for exact values one
-    would solve an SDP or use specialized formulas. As Δθ -> 0, the estimate -> 0;
-    as Δθ -> π, the estimate -> 2 (maximum channel distinguishability).
-    """
-    delta_theta = unitary_eigenphase_spread(U_target, U_approx)
-    # Clamp to [0, π] for the sinusoidal estimate symmetry
-    delta_theta = min(delta_theta, np.pi)
-    return float(2.0 * np.sin(delta_theta / 2.0))
-
-
-# ---------------------------
-# Convenience: reconstruct from R_matrices + Phi (your stored order)
-# ---------------------------
-
-def reconstruct_from_R_and_Phi(R_matrices: list[np.ndarray], Phi: np.ndarray) -> np.ndarray:
-    """
-    Given a list of full-size rotation matrices R_k (in the SAME order they were applied)
-    and a diagonal Phi, reconstruct U_rec = (Π_k R_k) @ Phi.
-    """
-    m = Phi.shape[0]
-    U_rec = np.eye(m, dtype=complex)
-    for Rk in R_matrices:
-        U_rec = Rk @ U_rec
-    return U_rec @ Phi
-
-F  = operator_fidelity(matrix, reconstructed)
-S  = trace_similarity(matrix, reconstructed)
-FE = frobenius_error(matrix, reconstructed)
-SE = spectral_norm_error(matrix, reconstructed)
-TD = trace_distance(matrix, reconstructed)
-FA = average_gate_fidelity(matrix, reconstructed)
-HS = hilbert_schmidt_inner(matrix, reconstructed, normalized=True)
-PS = unitary_eigenphase_spread(matrix, reconstructed)              # radians, in [0, 2π]
-DN = diamond_norm_unitary_estimate(matrix, reconstructed)          # in [0, 2]
-
-
-print(f"Operator fidelity           : {F:.12f}")
-print(f"Trace similarity            : {S:.12f}")
-print(f"Average gate fidelity       : {FA:.12f}")
-print(f"Hilbert–Schmidt (normalized): {HS:.12f} (complex magnitude ≈ fidelity)")
-
-print(f"Frobenius error             : {FE:.6e}")
-print(f"Spectral norm error         : {SE:.6e}")
-print(f"Trace distance              : {TD:.6e}")
-
-print(f"Eigenphase minimal arc (Δθ) : {PS:.6f} rad")
-print(f"Diamond-norm estimate       : {DN:.6f}")
 
 def randomMatrixDecompRecons(n):
     matrix = generate_random_unitary_matrix(n)
@@ -335,50 +14,65 @@ def randomMatrixDecompRecons(n):
         else: reconstructed = R_matrices @ Phi
     return(matrix, reconstructed)
 
-import random
-def generate_sorted_random_numbers(count=5, start=2, end=20):
-    """
-    Generate 'count' unique random integers between 'start' and 'end' (inclusive),
-    sorted in increasing order.
-    """
-    numbers = random.sample(range(start, end + 1), count)
-    return sorted(numbers)
 
-arr = generate_sorted_random_numbers()
+def decomposition_accuracy(trials = 10):
 
-import pandas as pd
-trials = 10
-table = pd.DataFrame(columns = ['n-Value', 'Trials', 'Operator fidelity', 'Trace similarity', 'Frobenius error', 'Spectral norm error', 'Eigenphase minimal arc'])
-arr = generate_sorted_random_numbers()
-for n in arr:
-    F1 = 0
-    S1 = 0
-    FE1 = 0
-    SE1 = 0
-    PS1 = 0
-    
-    for a in range(trials):
-        matrix, reconstructed = randomMatrixDecompRecons(n)
-        F  = round(operator_fidelity(matrix, reconstructed),10)
-        S  = round(trace_similarity(matrix, reconstructed),10)
-        FE = frobenius_error(matrix, reconstructed)
-        SE = spectral_norm_error(matrix, reconstructed)
-        PS = unitary_eigenphase_spread(matrix, reconstructed)
+    table = pd.DataFrame(
+        columns = [
+            'n-Value', 
+            'Trials', 
+            'Operator fidelity', 
+            'Trace similarity', 
+            'Frobenius error', 
+            'Spectral norm error', 
+            'Eigenphase minimal arc'
+            ]
+        )
+
+    arr = generate_sorted_random_numbers()
+    for n in arr:
+        fidelity_score_cumulated = 0
+        trace_similarity_score_cumulated = 0
+        frobenius_error_cumulated = 0
+        spectral_norm_error_cumulated = 0
+        eigenphase_spread_cumulated = 0
         
-        F1=F1+F
-        S1=S1+S
-        FE1=FE1+FE
-        SE1=SE1+SE
-        PS1=PS1+PS
-        
-    table.loc[len(table)]=[n, trials, F1/trials, S1/trials, FE1/trials, SE1/trials, PS1/trials]
+        for a in range(trials):
+            matrix, reconstructed = randomMatrixDecompRecons(n)
+
+            fidelity_score  = operator_fidelity(matrix, reconstructed)
+            trace_similarity_score  = trace_similarity(matrix, reconstructed)
+            frobenius_error_value = frobenius_error(matrix, reconstructed)
+            spectral_norm_error_value = spectral_norm_error(matrix, reconstructed)
+            eigenphase_spread_value = unitary_eigenphase_spread(matrix, reconstructed)   # radians, in [0, 2π]
+            gate_fidelity_score = average_gate_fidelity(matrix, reconstructed)
+            gate_fidelity_normalized_score = hilbert_schmidt_inner(matrix, reconstructed, normalized=True)
+            diamond_norm_estimate = diamond_norm_unitary_estimate(matrix, reconstructed)          # in [0, 2]
+            
+            fidelity_score_cumulated += fidelity_score 
+            trace_similarity_score_cumulated += trace_similarity_score 
+            frobenius_error_cumulated += frobenius_error_value 
+            spectral_norm_error_cumulated += spectral_norm_error_value 
+            eigenphase_spread_cumulated += eigenphase_spread_value 
+            
+        table.loc[len(table)] = [
+            n, 
+            trials, 
+            fidelity_score_cumulated/trials, 
+            trace_similarity_score_cumulated/trials, 
+            frobenius_error_cumulated/trials, 
+            spectral_norm_error_cumulated/trials, 
+            eigenphase_spread_cumulated/trials
+        ]
+
+    return table
 
 
-print(table)
+if __name__ == "__main__":
 
-
-
-
-
-
+    # Grover's Algorithm with Universal Decomposition
+    print(" ---- ---- Validation of Decomposition Accuracy ---- ---- ")
+    response_table = decomposition_accuracy()
+    response_table['n-Value'] = response_table['n-Value'].astype(int)
+    print(response_table)
 
