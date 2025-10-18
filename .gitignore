@@ -4,4 +4,8 @@ __pycache__/
 # Environments
 .venv
 
+# Python Notebooks
+accuracy_params.ipynb
+notebook_qkd_universal.ipynb
+notebook_grover_universal.ipynb
 

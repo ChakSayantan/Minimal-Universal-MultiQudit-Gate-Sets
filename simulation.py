@@ -6,12 +6,10 @@ Furthermore, it provides visual outcomes of the measurement outputs through a hi
 '''
 
 import json
-
-from utils.utils_qkd import *
-from circuits.circuits_qkd import *
-
-from utils.utils_grover import *
-from circuits.circuits_grover import *
+from utils.qkd_tools import *
+from utils.circuits_qkd import *
+from utils.grover_tools import *
+from utils.circuits_grover import *
 
 
 # --- Grover's Algorithm Execution with Traditional gates and Decomposed gates ---
