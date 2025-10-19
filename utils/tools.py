@@ -5,6 +5,7 @@ import random
 import numpy as np
 
 # --- To define arbitrary operator from arbitrary matrix ---
+
 # The ArbitraryGate is used to apply the decomposed matrices from Reck's method.
 # It's a generic gate that can take any unitary matrix.
 class ArbitraryGate(cirq.Gate):
@@ -146,20 +147,74 @@ def reckon_decompose_unitary(M):
     return R_matrices, Phi
 
 
+# Li-Roberts-Yin's Decomposition of unitary matrices and quantum gates
+def li_roberts_yin_decompose(U):
+    """
+    Simplified Li Roberts Yin decomposition:
+    Break unitary matrix into fully-controlled single-qubit gates.
+    Returns: list of (target_qubit, controls, U2_matrix)
+    """
+    U = np.array(U, dtype=complex)
+    n = int(np.log2(U.shape[0]))
+    gates = []
+
+    # Work column by column
+    for col in range(U.shape[0]):
+        for target in range(n):
+            # For each control pattern (other qubits fixed)
+            for ctrl_pattern in range(2**(n-1)):
+                # Build indices for pair differing at 'target'
+                bits = [(ctrl_pattern >> i) & 1 for i in range(n-1)]
+                controls = {}
+                idx0_bits, idx1_bits = [], []
+                bitpos = 0
+                for q in range(n):
+                    if q == target:
+                        idx0_bits.append(0)
+                        idx1_bits.append(1)
+                    else:
+                        val = bits[bitpos]
+                        controls[q] = val
+                        idx0_bits.append(val)
+                        idx1_bits.append(val)
+                        bitpos += 1
+                idx0 = sum(b << i for i, b in enumerate(idx0_bits))
+                idx1 = sum(b << i for i, b in enumerate(idx1_bits))
+
+                a, b = U[idx0, col], U[idx1, col]
+                if abs(b) < 1e-12:  # nothing to zero
+                    continue
+
+                # Build 2x2 Givens rotation
+                r = np.sqrt(abs(a)**2 + abs(b)**2)
+                c, s = a/r, b/r
+                G = np.array([[c, s], [-np.conj(s), np.conj(c)]], dtype=complex)
+
+                # Apply to U
+                U[[idx0, idx1], :] = G @ U[[idx0, idx1], :]
+
+                # Record gate
+                gates.append((target, controls, G))
+
+    return gates
+
+
+# --- Matrix Tools ---
+
 def generate_random_unitary_matrix(n):
     """
     Generates an n x n random unitary complex matrix using the QR decomposition
     of a Ginibre random matrix.
     """
-    # 1. Create an n x n matrix with standard complex Gaussian entries (Ginibre matrix)
+    # Create an n x n matrix with standard complex Gaussian entries (Ginibre matrix)
     # Each real and imaginary part drawn from N(0, 1/2)
     # np.random.randn generates samples from a standard normal distribution N(0, 1)
     A = (np.random.randn(n, n) + 1j * np.random.randn(n, n)) / np.sqrt(2.0)
 
-    # 2. Perform QR decomposition
+    # Perform QR decomposition
     Q, R = np.linalg.qr(A)
 
-    # 3. The matrix Q is unitary
+    # The matrix Q is unitary
     return Q
 
 
@@ -172,9 +227,9 @@ def generate_sorted_random_numbers(count=5, start=2, end=20):
     return sorted(numbers)
 
 
-# ---------------------------
+# ------------------------------
 # Core matrix similarity metrics
-# ---------------------------
+# ------------------------------
 
 def operator_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     """
@@ -253,9 +308,9 @@ def average_gate_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     return float((np.abs(t) ** 2 + m) / (m * (m + 1)))
 
 
-# ---------------------------
+# -----------------------------
 # Unitary-specific diagnostics
-# ---------------------------
+# -----------------------------
 
 def _circular_min_arc_length(phases: np.ndarray) -> float:
     """

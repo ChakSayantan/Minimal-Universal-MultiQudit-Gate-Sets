@@ -5,7 +5,8 @@ __pycache__/
 .venv
 
 # Python Notebooks
-accuracy_params.ipynb
 notebook_qkd_universal.ipynb
 notebook_grover_universal.ipynb
+notebook_accuracy_params.ipynb
+notebook_gate_complexity.ipynb
 
