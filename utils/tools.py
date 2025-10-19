@@ -179,7 +179,7 @@ def generate_sorted_random_numbers(count=5, start=2, end=20):
 def operator_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     """
     Operator fidelity for (ideally unitary) matrices:
-        F = (1/m) * |Tr(U_target^\dagger U_approx)|
+        F = (1/m) * |Tr(U_target^\\dagger U_approx)|
     Returns a value in [0, 1] when both are unitary.
     """
     m = U_target.shape[0]
@@ -189,8 +189,8 @@ def operator_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
 def trace_similarity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     """
     Normalized trace overlap ('trace similarity'):
-        S = |Tr(U_target^\dagger U_approx)| / sqrt(Tr(U_target^\dagger U_target) * Tr(U_approx^\dagger U_approx))
-    For unitaries, Tr(U^\dagger U) = m, hence S == operator_fidelity.
+        S = |Tr(U_target^\\dagger U_approx)| / sqrt(Tr(U_target^\\dagger U_target) * Tr(U_approx^\\dagger U_approx))
+    For unitaries, Tr(U^\\dagger U) = m, hence S == operator_fidelity.
     """
     num = np.abs(np.trace(U_target.conj().T @ U_approx))
     den = np.sqrt(
@@ -233,8 +233,8 @@ def trace_distance(U_target: np.ndarray, U_approx: np.ndarray) -> float:
 def hilbert_schmidt_inner(U_target: np.ndarray, U_approx: np.ndarray, normalized: bool = True) -> complex:
     """
     Hilbert–Schmidt inner product:
-        <U_target, U_approx> = Tr(U_target^\dagger U_approx)
-    If normalized=True, returns Tr(U_target^\dagger U_approx)/m,
+        <U_target, U_approx> = Tr(U_target^\\dagger U_approx)
+    If normalized=True, returns Tr(U_target^\\dagger U_approx)/m,
     which for unitaries is (complex) and whose magnitude equals operator fidelity.
     """
     m = U_target.shape[0]
@@ -245,7 +245,7 @@ def hilbert_schmidt_inner(U_target: np.ndarray, U_approx: np.ndarray, normalized
 def average_gate_fidelity(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     """
     Average gate fidelity (widely used benchmark metric):
-        F_avg = (|Tr(U_target^\dagger U_approx)|^2 + m) / (m * (m + 1))
+        F_avg = (|Tr(U_target^\\dagger U_approx)|^2 + m) / (m * (m + 1))
     Assumes both are m×m unitaries (or near-unitary).
     """
     m = U_target.shape[0]
@@ -275,9 +275,9 @@ def _circular_min_arc_length(phases: np.ndarray) -> float:
 
 def unitary_eigenphase_spread(U_target: np.ndarray, U_approx: np.ndarray) -> float:
     """
-    Compute the eigenphase 'spread' for W = U_target^\dagger U_approx.
+    Compute the eigenphase 'spread' for W = U_target^\\dagger U_approx.
     Steps:
-      1) W = U_target^\dagger U_approx (unitary if both are unitary)
+      1) W = U_target^\\dagger U_approx (unitary if both are unitary)
       2) eigenvalues λ_k of W lie on the unit circle; let θ_k = arg(λ_k) in [-π, π)
       3) return minimal covering arc length Δθ ∈ [0, 2π]
     Smaller Δθ indicates closer unitary action modulo a global phase.
@@ -295,7 +295,7 @@ def diamond_norm_unitary_estimate(U_target: np.ndarray, U_approx: np.ndarray) ->
 
     For unitaries, a convenient proxy is:
         || Ad_U - Ad_V ||_diamond  ≈  2 * sin(Δθ / 2)
-    where Δθ is the minimal covering arc length of eigenphases of W = U_target^\dagger U_approx
+    where Δθ is the minimal covering arc length of eigenphases of W = U_target^\\dagger U_approx
     (after optimal global phase alignment, which this Δθ effectively encodes).
 
     NOTE: This is an estimate commonly used in practice; for exact values one
