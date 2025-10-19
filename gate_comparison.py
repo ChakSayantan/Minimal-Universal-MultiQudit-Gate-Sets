@@ -7,8 +7,6 @@ def count_reck(matrix):
     return(len(R_matrices)+1)
 
 def count_cnott(matrix, N):
-    n = 1
-    M = N**n
     Q, _ = np.linalg.qr(matrix)
     gates = li_roberts_yin_decompose(Q)
     return(len(gates))
@@ -21,7 +19,7 @@ def gate_comparison():
     )
     
     trial = 10
-    arr = generate_sorted_random_numbers()
+    arr = generate_sorted_random_numbers(count=15, start=2, end=30)
     for N in arr:
         reck_decomposition_count = 0
         li_robert_yin_decomposition_count = 0
@@ -33,7 +31,7 @@ def gate_comparison():
 
     comparison_table['Qudit States'] = comparison_table['Qudit States'].astype(int)
     comparison_table['Trials Count'] = comparison_table['Trials Count'].astype(int)
-    # pd.set_option('display.float_format', lambda x: f'{x:.16f}')
+    # pd.set_option('display.float_format', lambda x: f'{x:.2f}')
 
     return comparison_table
 
