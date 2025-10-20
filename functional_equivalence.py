@@ -20,7 +20,7 @@ def decomposition_accuracy(trials = 10):
 
     # Storing Accuracy Validation Logs
     validationLogs = []
-    validationLogs.append("\n--- Validation of Decomposition Accuracy ---")
+    validationLogs.append("\n--- Functional Equivalence : Validation of Decomposition Accuracy ---")
 
     table = pd.DataFrame(
         columns = [
