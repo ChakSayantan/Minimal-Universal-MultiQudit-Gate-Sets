@@ -1,28 +1,34 @@
 # Minimal-Universal-MultiQudit-Gate-Sets
-The code repository alligns with the research paper titled "Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation".
+The code repository alligns with the research paper titled "Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation", authored by Anisha Dutta, Sayantan Chakraborty, Chandan Goswami, and Avishek Adhikari. The research paper provides an algorithms for decomposing arbitrary multi-qudit operations using a rigorously proven minimal universal gate set. The implementation validates the proposed framework through functional equivalence tests and practical demonstrations, including Grover’s algorithm and QKD circuit simulations, confirming its cryptographic applicability, also establishing the efficiency across another widely acceptable higher-dimensional quantum systems. 
 
 ## 1. Introduction
 
-This repository provides a practical implementation and validation framework for a minimal universal gate set for multi-qudit systems. 
-It aligns with the paper titled "Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation". 
-Unlike generic qubit circuits, qudit circuits leverage higher-dimensional Hilbert spaces. 
-Here we validate two cryptographically significant algorithms: **Grover's search** and **Quantum Key Distribution (QKD)**. 
-Both implementations are constructed with traditional gates and with decomposed gates synthesized entirely from the universal set `PHASE1 ∪ T_elements`. 
-The aim is to confirm functional equivalence and assess performance trade-offs, thereby demonstrating that qudit-based circuits can be realistically deployed for cryptographic applications.
+This repository provides a comprehensive implementation and validation framework for the minimal universal gate set proposed for multi-qudit systems, as described in the research paper “Practically Implementable Minimal Universal Gate Sets for Multi-Qudit Systems with Cryptographic Validation.”
+
+Unlike conventional qubit-based circuits, qudit circuits operate on higher-dimensional Hilbert spaces, enabling more compact, expressive, and scalable quantum operations. The repository implements a Python-based algorithmic decomposition of arbitrary multi-qudit unitary matrices into the rigorously proven minimal universal gate set `S = PHASE1 ∪ T_elements`. The decomposition is based on Reck’s approach and includes detailed time and space complexity analyses in the correcponding research paper.
+
+The implementation validates the functional equivalence of the decomposed circuits against their original unitary forms using fidelity, trace similarity, and matrix norm metrics—all confirming near-perfect agreement within machine precision. Further, an efficiency comparison with the widely accepted Li–Roberts–Yin (LRY) decomposition demonstrates that the proposed method achieves significantly reduced gate counts and better scalability for higher-dimensional systems.
+
+Two cryptographically significant algorithms — **Grover’s search** and **Quantum Key Distribution (QKD)** — are implemented using both traditional and decomposed gate models. The simulations confirm that the decomposed circuits reproduce identical logical and cryptographic outcomes, thereby validating the proposed gate set’s practical implementability, hardware-agnostic portability, and efficiency for realistic quantum cryptographic workflows.
 
 ## 2. Repository Structure
 
 ```
 .
-├── __init__.py
-├── grover_utils.py
-├── grover_circuits.py
-├── qkd_utils.py
-├── qkd_circuits.py
-├── Grover_Measurements/ Grovers Circuit with Traditional Gates.png (histograms generated during execution)
-├── Grover_Measurements/ Grovers Circuit with Universal Gates.png (histograms generated during execution)
-├── QKD_Measurements/ QKD Basis Choice Distribution.png (distribution plot generated during execution)
-├── QKD_Measurements/ QKD Simulation Outcomes.txt (simulation log generated during execution)
+├── cryptographic_simulation.py
+├── functional_equivalence.py
+├── efficiency_over_li_roberts_yin.py
+├── utils/tools.py
+├── utils/circuits_grover.py
+├── utils/grover_tools.py
+├── utils/circuits_qkd.py
+├── utils/qkd_tools.py
+├── requirements.txt
+├── Grover_Measurements/Grovers Circuit with Traditional Gates.png (Histogram generated during execution)
+├── Grover_Measurements/Grovers Circuit with Universal Gates.png (Histogram generated during execution)
+├── QKD_Measurements/QKD Basis Choice Distribution.png (Distribution plot generated during execution)
+├── QKD_Measurements/QKD Simulation Outcomes.txt (Simulation log generated during execution)
+├── Functional_Equivalence/Functional Equivalence Report.txt (Validation log generated during execution)
 ```
 
 - **`__init__.py`** → Entry point to run Grover’s Algorithm and QKD simulations.  

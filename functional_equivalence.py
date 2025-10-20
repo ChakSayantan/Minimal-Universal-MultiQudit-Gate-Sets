@@ -93,11 +93,11 @@ def decomposition_accuracy(trials = 10):
     # pd.set_option('display.float_format', lambda x: f'{x:.16f}')
 
     validationLogsReport = "\n\n".join([str(item) for item in validationLogs])
-    output_folder = "Decomposition_Accuracy"
+    output_folder = "Functional_Equivalence"
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    fileLocation = f"{output_folder}/Decomposition Accuracy Report.txt"
+    fileLocation = f"{output_folder}/Functional Equivalence Report.txt"
     with open(fileLocation, "w", encoding="utf-8") as file:
         file.write(validationLogsReport)
 
