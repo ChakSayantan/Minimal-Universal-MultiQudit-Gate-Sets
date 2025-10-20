@@ -29,18 +29,23 @@ Two cryptographically significant algorithms — **Grover’s search** and **Qua
 ├── QKD_Measurements/QKD Basis Choice Distribution.png (Distribution plot generated during execution)
 ├── QKD_Measurements/QKD Simulation Outcomes.txt (Simulation log generated during execution)
 ├── Functional_Equivalence/Functional Equivalence Report.txt (Validation log generated during execution)
+├── Efficiency_Report/Efficiency Over Li Roberts Yin Decomposition.txt (Gate Comparison logs generated during execution)
 ```
 
-- **`__init__.py`** → Entry point to run Grover’s Algorithm and QKD simulations.  
-- **`grover_utils.py`** → Core utilities for Grover’s algorithm (Hadamard, oracle, diffusion, decomposition).  
-- **`grover_circuits.py`** → Builders for Grover circuits (traditional and universal).  
-- **`qkd_utils.py`** → Qutrit swap gates, Hadamard generalizations, decomposition utilities.  
-- **`qkd_circuits.py`** → QKD simulation circuits for Alice and Bob.  
+- **`cryptographic_simulation.py`** → Entry point to run Grover’s Algorithm and QKD simulations.  
+- **`functional_equivalence.py`** → Implementation to check functional equivalence of proposed decomposition.  
+- **`efficiency_over_li_roberts_yin.py`** → gate count comparison between proposed decomposition and Li-Roberts-Yin decomposition.
+- **`tools.py`** → General utility tools used for the above mentioned workflows.  
+- **`grover_tools.py`** → Core utilities for Grover’s algorithm (Hadamard, oracle, diffusion, decomposition).  
+- **`circuits_grover.py`** → Builders for Grover circuits (traditional and universal).  
+- **`qkd_tools.py`** → Qutrit swap gates, Hadamard generalizations, decomposition utilities.  
+- **`circuits_qkd.py`** → QKD simulation circuits for Alice and Bob.  
+- **`requirements.txt`** → Packages / Libraries required to create enviroment to execute above files.  
 - **Output folders** store histograms, logs, and distribution plots.  
 
 ## 3. Technical Flow
 
-- Execution begins with **`__init__.py`**.  
+- Execution begins with **`cryptographic_simulation.py`**.  
 - For **Grover’s algorithm**: two 4-dimensional qudits are initialized.  
   - Traditional circuit → Generalized Hadamard, Uf, U0, measurement.  
   - Decomposed circuit → Reck’s decomposition of Hadamard-like gates into 2×2 rotations + PHASE1 gates.  
