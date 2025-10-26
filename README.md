@@ -58,10 +58,13 @@ Two cryptographically significant algorithms — **Grover’s search** and **Qua
   - Histograms of Grover amplified states.  
   - Basis choice distribution plots.  
   - Logs with per-round QKD results.  
+- Grover’s algorithm validates **attack feasibility** in qudit cryptanalysis.  
+- QKD demonstrates **defensive protocol correctness** under decomposition.  
+- Equivalence testing confirms minimal gate sets can support cryptography securely.  
 
-#### 3A. Grover’s Algorithm Validation
+### 3A. Grover’s Algorithm Validation
 
-### Traditional Circuit
+#### Traditional Circuit
 
 Constructed with generalized qudit gates:  
 
@@ -79,7 +82,7 @@ circuit = cirq.Circuit([
 ])
 ```
 
-### Universal Circuit
+#### Universal Circuit
 
 Constructed using Reck’s decomposition:  
 
@@ -91,7 +94,7 @@ for M in R_matrices[::-1]:
     ops += [ArbitraryGate(d=4, matrix=M)(q0), ArbitraryGate(d=4, matrix=M)(q1)]
 ```
 
-### Results
+#### Results
 
 - **Traditional Histogram**  
   ![Grover Traditional](./Grover_Measurements/Grovers%20Circuit%20with%20Traditional%20Gates.png)  
@@ -102,17 +105,17 @@ for M in R_matrices[::-1]:
 **Interpretation:** Both amplify the same marked state, confirming equivalence.  
 The universal version has greater depth but functional correctness is preserved.  
 
-## 5. Quantum Key Distribution (QKD) Validation
+### 3B. Quantum Key Distribution (QKD) Validation
 
 - Alice chooses random trit (0/1/2) and basis (rectilinear/diagonal).  
 - Bob chooses random basis (rectilinear/diagonal).  
 - Keys established when bases align.  
 
-### Basis Choice Distribution  
+#### Basis Choice Distribution  
 
 ![QKD Basis](./QKD_Measurements/QKD%20Basis%20Choice%20Distribution.png)  
 
-### Example Logs  
+#### Example Logs  
 
 ```
 --- QKD Round 29/100 ---
@@ -147,13 +150,13 @@ No key bit established for this round.
 In Round 67 of the QKD simulation, within the traditional setup, Alice randomly selected the trit “0” and the rectilinear basis, while Bob independently chose the diagonal basis. Because of Alice’s choices, this resulted in a circuit that keeps the state unaltered. Bob, matching the basis choice, appended a Hadamard gate before measurement. 
 In case of universal decomposed gates, the only Hadamard gate in the circuit has been replaced with three R_ij, one Phi balance and one Phi matrices. We see both measurements yielded different values of measured bit, although the choice of bases being different, this round will anyway not yield any shared key bit.
 
-### Summary  
+#### Summary  
 
 - 100 rounds simulated.  
 - Around 50 shared key bits established.  
 - Both traditional and universal gates produced identical outcomes whenever choices of bases matches.  
 
-## 6. Implementation Details
+### 3C. Implementation Details
 
 - **Reck’s decomposition** expresses arbitrary unitaries as products of 2×2 rotations and a diagonal phase.  
 - Custom Cirq gates (`QuditHGate`, `Qutrit_0swap1`, `Qutrit_0swap2`) are decomposed into `ArbitraryGate` instances.  
@@ -162,9 +165,9 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
   - Histograms (`Matplotlib`)  
   - Logs (plain text)  
 
-## 7. Results & Outputs
+### 3D. Results & Outputs
 
-### Sample Grover JSON Output  
+#### Sample Grover JSON Output  
 
 ```json
 {
@@ -182,7 +185,7 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 }
 ```
 
-### Sample QKD JSON Output  
+#### Sample QKD JSON Output  
 
 ```json
 {
@@ -198,15 +201,9 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 }
 ```
 
-## 8. Cryptographic Relevance
+## 4. How to Run
 
-- Grover’s algorithm validates **attack feasibility** in qudit cryptanalysis.  
-- QKD demonstrates **defensive protocol correctness** under decomposition.  
-- Equivalence testing confirms minimal gate sets can support cryptography securely.  
-
-## 9. How to Run
-
-### Requirements  
+#### Requirements  
 
 All necessary python libraries with matching version are provided in requirements file. 
 Majorly required python libraries are following. 
@@ -216,16 +213,16 @@ Majorly required python libraries are following.
 - NumPy  
 - Matplotlib  
 
-### Installation  
+#### Installation  
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Run Simulation  
+#### Run Simulation  
 
 ```bash
-python __init__.py
+python cryptographic_simulation.py
 ```
 
 Outputs will be displayed in terminal itself.
