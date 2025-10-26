@@ -41,9 +41,9 @@ Two cryptographically significant algorithms — **Grover’s search** and **Qua
 - **`qkd_tools.py`** → Qutrit swap gates, Hadamard generalizations, decomposition utilities.  
 - **`circuits_qkd.py`** → QKD simulation circuits for Alice and Bob.  
 - **`requirements.txt`** → Packages / Libraries required to create enviroment to execute above files.  
-- **Output folders** store histograms, logs, and distribution plots.  
+- **Output folders** store logs, histograms, and distribution plots.  
 
-## 3. Technical Flow
+## 3. Technical Flow : Cryptographic Algorithms Simulations
 
 - Execution begins with **`cryptographic_simulation.py`**.  
 - For **Grover’s algorithm**: two 4-dimensional qudits are initialized.  
@@ -59,7 +59,7 @@ Two cryptographically significant algorithms — **Grover’s search** and **Qua
   - Basis choice distribution plots.  
   - Logs with per-round QKD results.  
 
-## 4. Grover’s Algorithm Validation
+#### 3A. Grover’s Algorithm Validation
 
 ### Traditional Circuit
 
