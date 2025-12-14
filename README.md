@@ -203,12 +203,25 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 
 ## 4. Numerical Validation of Qudit Gate Decomposition Accuracy
 
-This section validates that arbitrary multi-qudit unitary operators, when decomposed using the proposed minimal universal gate set $S = \text{PHASE1} \cup T_{\text{elements}}$ remain **functionally equivalent** to their original (undecomposed) representations.
+This section validates that arbitrary multi-qudit unitary operators, when decomposed using the proposed minimal universal gate set $S = \text{PHASE1} \cup T_{\text{elements}}$ remain **functionally equivalent** to their original (undecomposed) representations. The goal is to empirically demonstrate that the our proposed decomposition constructed solely from PHASE1 gates and embedded 2-dimensional subspace rotations:
 
-The goal is to empirically demonstrate that the Reck-based decomposition constructed solely from PHASE1 gates and embedded \(SU(2)\) subspace rotations:
 - Preserves the action of the original unitary operator,
 - Introduces only negligible numerical error due to floating-point precision,
 - Scales correctly across increasing qudit dimensions.
+
+#### Numerical Measures Validated
+
+- **Operator Fidelity** – Measures overlap between \(U\) and \(\tilde{U}\); ideal value is 1.
+- **Trace Similarity** – Phase-invariant similarity measure.
+- **Frobenius Norm Error** – \(\|U - \tilde{U}\|_F\), total reconstruction error.
+- **Spectral Norm Error** – Worst-case singular value deviation.
+- **Eigenphase Minimal Arc Distance** – Confirms phase consistency modulo \(2\pi\).
+
+Together, these metrics verify equivalence up to machine precision. Across all tested dimensions and trials:
+
+- Operator fidelity and trace similarity consistently evaluate to **1.0**.
+- Reconstruction errors remain on the order of \(10^{-15}\), consistent with floating-point limits.
+- No observable degradation is seen as qudit dimension increases.
 
 #### Sample Output  
 
@@ -221,10 +234,29 @@ The goal is to empirically demonstrate that the Reck-based decomposition constru
 4            20            10                1.0               1.0     6.196331e-15         4.821528e-15            1.776357e-16
 ```
 
+## 5. Gate Count Advantage over Existing Qudit Decomposition Method
 
-## 5. Edge over Existent Solution
+While universality guarantees correctness, **practical quantum computation demands efficiency**. Gate count directly impacts:
 
--- To_be_filled_up --
+- Circuit depth,
+- Noise accumulation,
+- Execution time,
+- Fault-tolerance overhead.
+
+Thus, comparing decomposition cost is essential for real-world applicability. For increasing qudit dimensions:
+
+1. Random unitary matrices are generated.
+2. Each unitary is decomposed using:
+   - **Li–Roberts–Yin (LRY) Method**, and
+   - **Proposed Decomposition Method**.
+3. The total number of elementary gates required by each method is recorded.
+4. Results are averaged over multiple trials per dimension.
+
+Both methods produce correct decompositions; the comparison focuses purely on **resource efficiency**. The proposed method consistently outperforms the LRY approach:
+
+- Requires **significantly fewer gates**,
+- Exhibits better scaling with dimension,
+- Avoids high-arity controlled operations.
 
 #### Sample Output  
 
