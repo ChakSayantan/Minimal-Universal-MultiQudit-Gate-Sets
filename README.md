@@ -207,7 +207,7 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 
 #### Sample Output  
 
-```json
+```
      Qudit States  Trials Count  Operator fidelity  Trace similarity  Frobenius error  Spectral norm error  Eigenphase minimal arc
 0             2            10                1.0               1.0     5.390850e-16         5.132342e-16            0.000000e+00
 1             5            10                1.0               1.0     1.724244e-15         1.451355e-15            0.000000e+00
@@ -223,7 +223,7 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 
 #### Sample Output  
 
-```json
+```
    Qudit States  Trials Count  Li-Robert-Yin Method - Avg Gate Count  Recks Method - Avg Gate Count
 0             6            10                                   24.0                           17.0
 1             7            10                                   28.0                           23.0
