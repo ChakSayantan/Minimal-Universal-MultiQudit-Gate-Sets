@@ -201,9 +201,14 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 }
 ```
 
-## 4. Decomposition Accuracy validation
+## 4. Numerical Validation of Qudit Gate Decomposition Accuracy
 
--- To_be_filled_up --
+This section validates that arbitrary multi-qudit unitary operators, when decomposed using the proposed minimal universal gate set $S = \text{PHASE1} \cup T_{\text{elements}}$ remain **functionally equivalent** to their original (undecomposed) representations.
+
+The goal is to empirically demonstrate that the Reck-based decomposition constructed solely from PHASE1 gates and embedded \(SU(2)\) subspace rotations:
+- Preserves the action of the original unitary operator,
+- Introduces only negligible numerical error due to floating-point precision,
+- Scales correctly across increasing qudit dimensions.
 
 #### Sample Output  
 
@@ -249,9 +254,11 @@ Majorly required python libraries are following.
 - NumPy  
 - Matplotlib  
 
-#### Installation  
+We recommend the user to create a virtual python environment and then install all the required libraries / packages inside the virtual environment only. One can refer to the following chunk of codes for so.
 
 ```bash
+python -m venv .venv
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
