@@ -201,7 +201,43 @@ In case of universal decomposed gates, the only Hadamard gate in the circuit has
 }
 ```
 
-## 4. How to Run
+## 4. Decomposition Accuracy validation
+
+-- To_be_filled_up --
+
+#### Sample Output  
+
+```json
+     Qudit States  Trials Count  Operator fidelity  Trace similarity  Frobenius error  Spectral norm error  Eigenphase minimal arc
+0             2            10                1.0               1.0     5.390850e-16         5.132342e-16            0.000000e+00
+1             5            10                1.0               1.0     1.724244e-15         1.451355e-15            0.000000e+00
+2             8            10                1.0               1.0     2.322421e-15         1.865019e-15            0.000000e+00
+3            19            10                1.0               1.0     5.474471e-15         4.195457e-15            2.664535e-16
+4            20            10                1.0               1.0     6.196331e-15         4.821528e-15            1.776357e-16
+```
+
+
+## 5. Edge over Existent Solution
+
+-- To_be_filled_up --
+
+#### Sample Output  
+
+```json
+   Qudit States  Trials Count  Li-Robert-Yin Method - Avg Gate Count  Recks Method - Avg Gate Count
+0             6            10                                   24.0                           17.0
+1             7            10                                   28.0                           23.0
+2             8            10                                   88.0                           30.0
+3             9            10                                   99.0                           38.0
+4            12            10                                  132.0                           68.0
+5            13            10                                  143.0                           80.0
+6            14            10                                  154.0                           93.0
+7            16            10                                  416.0                          122.0
+8            18            10                                  468.0                          155.0
+9            19            10                                  494.0                          173.0
+```
+
+## 6. How to Run
 
 #### Requirements  
 
@@ -219,17 +255,32 @@ Majorly required python libraries are following.
 pip install -r requirements.txt
 ```
 
-#### Run Simulation  
+#### Run Simulations of Cryptographic Algorithms with Tradition Gates and Decomposed Gates  
 
 ```bash
 python cryptographic_simulation.py
 ```
 
 Outputs will be displayed in terminal itself.
-Histograms, distribution plots and simulation logs will be deposited in `Grover_Measurements/` and `QKD_Measurements/` folders.  
+Histograms, distribution plots and simulation logs will be deposited in `Grover_Measurements/` and `QKD_Measurements/` folders. 
+
+#### Validate Decomposition Accuracy  
+
+```bash
+python functional_equivalence.py
+```
+
+For random choices of Qudit states, a detailed functional equivalence table will be displayed in terminal. For 10 trails of each cases, Operator Fidelity, Trace Similarity and Reconstruction Errors like Frobenius Error, Spectral Norm Error, Eigenphase Minimal Arc will be calculated. 
+
+#### Compare Gate Count between LRY Method and Proposed Decomposition Method  
+
+```bash
+python efficiency_over_li_roberts_yin.py
+```
+
+Gate Comparison table will be displayed in terminal. Alongside, logs will be deposited in `Efficiency_Report/` folder.
 
 ---
 
 ## ✅ Conclusion
-This repository validates the practicality of the minimal universal gate set (`PHASE1 ∪ T_elements`) by demonstrating end-to-end cryptographic protocols in a reproducible Python framework.  
-Both **Grover's Algorithm** and **QKD Simulation** confirm **functional equivalence** between traditional and decomposed implementations, ensuring security and scalability in cryptographic contexts.
+This repository validates the practicality of the minimal universal gate set (`PHASE1 ∪ T_elements`) by validating the decomposition accuracy through functional accuracy parameters. It also demonstrates end-to-end cryptographic protocols in a reproducible Python framework. Both **Grover's Algorithm** and **QKD Simulation** confirm match between traditional and decomposed implementations, ensuring security and scalability in cryptographic contexts. Also, the gate count comparison with a popular decomposition method, namely Li-Roberts-Yin (2012) shows the edge our proposed decomposition method can offer over existing solutions.
